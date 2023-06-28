@@ -24,7 +24,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.summerpractiseapp.feature_contacts.presentation.MainScreen
 import com.example.summerpractiseapp.feature_contacts.presentation.MainViewModel
 import com.example.summerpractiseapp.feature_favourite.presentation.FavouriteScreen
@@ -32,9 +35,7 @@ import com.example.summerpractiseapp.feature_favourite.presentation.FavouriteVie
 import com.example.summerpractiseapp.feature_recent_calls.presentation.RecentCallsScreen
 import com.example.summerpractiseapp.feature_recent_calls.presentation.RecentCallsViewModel
 import com.example.summerpractiseapp.ui.theme.SummerPractiseAppTheme
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -44,14 +45,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SummerPractiseAppTheme {
-                val mainViewModel: MainViewModel by viewModels()
-                val userState = mainViewModel.userResponse.collectAsStateWithLifecycle().value
                 val favouriteViewModel: FavouriteViewModel by viewModels()
-                val favouriteState =
-                    favouriteViewModel.favouriteState.collectAsStateWithLifecycle().value
-                val navController = rememberAnimatedNavController()
+                val favouriteState = favouriteViewModel.favouriteState.collectAsStateWithLifecycle().value
+                val recentViewModel: RecentCallsViewModel = hiltViewModel()
+                val recentState = recentViewModel.recentCallsState.collectAsStateWithLifecycle().value
+                val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
+                val systemUiController = rememberSystemUiController()
+                systemUiController.setSystemBarsColor(color = MaterialTheme.colorScheme.background)
                 val items = listOf(
                     Screens.MainScreen,
                     Screens.FavouriteScreen,
@@ -91,12 +93,15 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     ) { innerPadding ->
-                        AnimatedNavHost(
+                        NavHost(
                             navController,
                             startDestination = Screens.MainScreen.route,
                             Modifier.padding(innerPadding)
                         ) {
                             composable(Screens.MainScreen.route) {
+                                val mainViewModel: MainViewModel = hiltViewModel()
+                                val userState =
+                                    mainViewModel.userResponse.collectAsStateWithLifecycle().value
                                 MainScreen(
                                     favouriteState,
                                     userState,
@@ -105,6 +110,9 @@ class MainActivity : ComponentActivity() {
                                     },
                                     deleteFromFavourite = {
                                         favouriteViewModel.deleteFavouriteContact(it)
+                                    },
+                                    insertToRecentCalls = {
+                                        recentViewModel.addToRecentCalls(it)
                                     }
                                 )
                             }
@@ -113,12 +121,13 @@ class MainActivity : ComponentActivity() {
                                     favouriteState = favouriteState,
                                     deleteFromFavourite = {
                                         favouriteViewModel.deleteFavouriteContact(it)
+                                    },
+                                    insertToRecentCalls = {
+                                        recentViewModel.addToRecentCalls(it)
                                     }
                                 )
                             }
                             composable(Screens.RecentCallsScreen.route) {
-                                val recentViewModel: RecentCallsViewModel = hiltViewModel()
-                                val recentState = recentViewModel.recentCallsState.collectAsStateWithLifecycle().value
                                 RecentCallsScreen(
                                     favouriteState = favouriteState,
                                     addToFavourite = {

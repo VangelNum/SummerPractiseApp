@@ -13,8 +13,9 @@ class RecentCallsRepositoryImpl @Inject constructor(
 ) : RecentCallsRepository {
     override fun getAllRecentCalls(): Flow<Resource<List<RecentCallsEntity>>> = flow {
         try {
-            val response = dao.getAllLatestPhone()
-            emit(Resource.Success(response))
+            val response = dao.getAllLatestPhone().collect {
+                emit(Resource.Success(it))
+            }
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Unknown error"))
         }
@@ -26,5 +27,8 @@ class RecentCallsRepositoryImpl @Inject constructor(
 
     override suspend fun addRecentCall(recentCall: RecentCallsEntity) {
         dao.addToLatest(recentCall)
+    }
+    override suspend fun getRecentCall(phone: String): RecentCallsEntity? {
+        return dao.getRecentCall(phone)
     }
 }

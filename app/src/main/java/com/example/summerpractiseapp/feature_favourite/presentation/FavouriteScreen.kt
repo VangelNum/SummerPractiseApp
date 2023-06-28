@@ -28,12 +28,14 @@ import com.example.summerpractiseapp.common.helpers.callPhone
 import com.example.summerpractiseapp.common.helpers.openBase64File
 import com.example.summerpractiseapp.feature_contacts.presentation.components.IconComponent
 import com.example.summerpractiseapp.feature_favourite.data.model.FavouriteContactsEntity
+import com.example.summerpractiseapp.feature_recent_calls.data.model.RecentCallsEntity
 import com.example.summerpractiseapp.ui.theme.BackgroundColorForPhoneItem
 
 @Composable
 fun FavouriteScreen(
     favouriteState: Resource<List<FavouriteContactsEntity>>,
-    deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit
+    deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
+    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit
 ) {
     when (favouriteState) {
         is Resource.Loading -> {
@@ -131,6 +133,15 @@ fun FavouriteScreen(
                                 circleColor = Color.Gray,
                                 modifier = Modifier.clickable {
                                     callPhone(userData.phone, context)
+                                    insertToRecentCalls(
+                                       RecentCallsEntity(
+                                           userData.phone,
+                                           userData.name,
+                                           userData.file,
+                                           userData.fileName,
+                                           userData.fileExtension
+                                       )
+                                    )
                                 }
                             )
                         }

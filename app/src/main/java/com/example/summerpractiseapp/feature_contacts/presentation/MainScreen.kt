@@ -1,24 +1,17 @@
 package com.example.summerpractiseapp.feature_contacts.presentation
 
-import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.net.Uri
-import android.util.Base64
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import com.example.summerpractiseapp.R
 import com.example.summerpractiseapp.common.Resource
 import com.example.summerpractiseapp.common.components.ErrorComponent
@@ -39,10 +31,9 @@ import com.example.summerpractiseapp.common.helpers.openBase64File
 import com.example.summerpractiseapp.feature_contacts.data.model.UserData
 import com.example.summerpractiseapp.feature_contacts.presentation.components.IconComponent
 import com.example.summerpractiseapp.feature_favourite.data.model.FavouriteContactsEntity
+import com.example.summerpractiseapp.feature_recent_calls.data.model.RecentCallsEntity
 import com.example.summerpractiseapp.ui.theme.BackgroundColorForPhoneItem
 import com.example.summerpractiseapp.ui.theme.SummerPractiseAppTheme
-import java.io.File
-import java.io.FileOutputStream
 
 
 @Composable
@@ -50,7 +41,8 @@ fun MainScreen(
     favouriteState: Resource<List<FavouriteContactsEntity>>,
     userState: Resource<List<UserData>>,
     addToFavourite: (contact: FavouriteContactsEntity) -> Unit,
-    deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit
+    deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
+    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit
 ) {
     when (userState) {
         is Resource.Loading -> {
@@ -62,7 +54,13 @@ fun MainScreen(
         }
 
         is Resource.Success -> {
-            UserTable(userState.data, addToFavourite, deleteFromFavourite, favouriteState)
+            UserTable(
+                userState.data,
+                addToFavourite,
+                deleteFromFavourite,
+                favouriteState,
+                insertToRecentCalls
+            )
         }
     }
 }
@@ -72,7 +70,8 @@ fun UserTable(
     userList: List<UserData>,
     addToFavourite: (contact: FavouriteContactsEntity) -> Unit,
     deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
-    favouriteState: Resource<List<FavouriteContactsEntity>>
+    favouriteState: Resource<List<FavouriteContactsEntity>>,
+    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -140,8 +139,7 @@ fun UserTable(
                             })
                     }
                     if (favouriteState is Resource.Success) {
-                        val isFavourite =
-                            favouriteState.data.map { it.phone }.contains(userData.phone)
+                        val isFavourite = favouriteState.data.map { it.phone }.contains(userData.phone)
                         if (isFavourite) {
                             IconComponent(
                                 icon = R.drawable.baseline_favorite_24,
@@ -185,6 +183,15 @@ fun UserTable(
                         circleColor = Color.Gray,
                         modifier = Modifier.clickable {
                             callPhone(userData.phone, context)
+                            insertToRecentCalls(
+                                RecentCallsEntity(
+                                    userData.phone,
+                                    userData.name,
+                                    userData.file,
+                                    userData.fileName,
+                                    userData.fileExtension
+                                )
+                            )
                         }
                     )
                 }
@@ -216,7 +223,8 @@ fun PreviewMainScreen() {
                     )
                 )
             ),
-            deleteFromFavourite = {}
+            deleteFromFavourite = {},
+            insertToRecentCalls = {}
         )
     }
 }

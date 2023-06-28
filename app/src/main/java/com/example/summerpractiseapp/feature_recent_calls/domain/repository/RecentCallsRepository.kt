@@ -8,4 +8,5 @@ interface RecentCallsRepository {
     fun getAllRecentCalls(): Flow<Resource<List<RecentCallsEntity>>>
     suspend fun deleteRecentCall(recentCall: RecentCallsEntity)
     suspend fun addRecentCall(recentCall: RecentCallsEntity)
+    suspend fun getRecentCall(phone: String): RecentCallsEntity?
 }

@@ -10,9 +10,8 @@ import java.io.FileOutputStream
 
 fun openBase64File(context: Context, base64String: String, fileType: String?, fileName: String?) {
     val fileData = Base64.decode(base64String, Base64.DEFAULT)
-    val fileFormat = fileType?.substringAfterLast("/")
 
-    val tempFile = File(context.cacheDir, "$fileName.$fileFormat")
+    val tempFile = File(context.cacheDir, "$fileName")
 
     FileOutputStream(tempFile).use { outputStream ->
         outputStream.write(fileData)

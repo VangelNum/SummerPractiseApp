@@ -32,7 +32,10 @@ class RecentCallsViewModel @Inject constructor(
 
     fun addToRecentCalls(recentCall: RecentCallsEntity) {
         viewModelScope.launch {
-            repository.addRecentCall(recentCall)
+            val existingCall = repository.getRecentCall(recentCall.phone)
+            if (existingCall == null) {
+                repository.addRecentCall(recentCall)
+            } else Unit
         }
     }
 
