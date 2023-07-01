@@ -1,11 +1,14 @@
 package com.example.summerpractiseapp.feature_favourite.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.summerpractiseapp.R
 import com.example.summerpractiseapp.common.Resource
@@ -30,12 +34,14 @@ import com.example.summerpractiseapp.feature_contacts.presentation.components.Ic
 import com.example.summerpractiseapp.feature_favourite.data.model.FavouriteContactsEntity
 import com.example.summerpractiseapp.feature_recent_calls.data.model.RecentCallsEntity
 import com.example.summerpractiseapp.ui.theme.BackgroundColorForPhoneItem
+import com.example.summerpractiseapp.ui.theme.SummerPractiseAppTheme
 
 @Composable
 fun FavouriteScreen(
     favouriteState: Resource<List<FavouriteContactsEntity>>,
     deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
-    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit
+    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit,
+    deleteUser: (String) -> Unit
 ) {
     when (favouriteState) {
         is Resource.Loading -> {
@@ -53,6 +59,7 @@ fun FavouriteScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(favouriteState.data) { userData ->
+                    val phoneNumber = "+" + userData.phone
                     Card(
                         shape = MaterialTheme.shapes.medium,
                         colors = CardDefaults.cardColors(containerColor = BackgroundColorForPhoneItem)
@@ -75,7 +82,7 @@ fun FavouriteScreen(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = userData.phone,
+                                    text = phoneNumber,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.titleLarge
@@ -97,57 +104,87 @@ fun FavouriteScreen(
                                     )
                                 }
                             }
-                            userData.file?.let { base64String ->
+                            Column {
                                 IconComponent(
-                                    icon = R.drawable.outline_file_open_24,
+                                    icon = R.drawable.baseline_close_24,
                                     contentDescription = null,
                                     circleColor = Color.Gray,
                                     modifier = Modifier.clickable {
-                                        openBase64File(
-                                            context,
-                                            base64String,
-                                            userData.fileExtension,
-                                            userData.fileName
+                                        deleteFromFavourite(
+                                            FavouriteContactsEntity(
+                                                phone = userData.phone,
+                                                name = userData.name,
+                                                file = userData.file,
+                                                fileName = userData.fileName,
+                                                fileExtension = userData.fileExtension
+                                            )
                                         )
-                                    })
-                            }
-                            IconComponent(
-                                icon = R.drawable.baseline_close_24,
-                                contentDescription = null,
-                                circleColor = Color.Gray,
-                                modifier = Modifier.clickable {
-                                    deleteFromFavourite(
-                                        FavouriteContactsEntity(
-                                            phone = userData.phone,
-                                            name = userData.name,
-                                            file = userData.file,
-                                            fileName = userData.fileName,
-                                            fileExtension = userData.fileExtension
-                                        )
-                                    )
-                                },
-                            )
-                            IconComponent(
-                                icon = R.drawable.outline_phone_24,
-                                contentDescription = null,
-                                circleColor = Color.Gray,
-                                modifier = Modifier.clickable {
-                                    callPhone(userData.phone, context)
-                                    insertToRecentCalls(
-                                       RecentCallsEntity(
-                                           userData.phone,
-                                           userData.name,
-                                           userData.file,
-                                           userData.fileName,
-                                           userData.fileExtension
-                                       )
-                                    )
+                                    },
+                                )
+                                userData.file?.let { base64String ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    IconComponent(
+                                        icon = R.drawable.outline_file_open_24,
+                                        contentDescription = null,
+                                        circleColor = Color.Gray,
+                                        modifier = Modifier.clickable {
+                                            openBase64File(
+                                                context,
+                                                base64String,
+                                                userData.fileExtension,
+                                                userData.fileName
+                                            )
+                                        })
                                 }
-                            )
+                            }
+                            Column {
+                                IconComponent(
+                                    icon = R.drawable.baseline_delete_outline_24,
+                                    contentDescription = null,
+                                    circleColor = Color.Gray,
+                                    modifier = Modifier.clickable {
+                                        deleteUser(userData.phone)
+                                    })
+                                Spacer(modifier = Modifier.height(8.dp))
+                                IconComponent(
+                                    icon = R.drawable.outline_phone_24,
+                                    contentDescription = null,
+                                    circleColor = Color.Gray,
+                                    modifier = Modifier.clickable {
+                                        callPhone(phoneNumber, context)
+                                        insertToRecentCalls(
+                                            RecentCallsEntity(
+                                                userData.phone,
+                                                userData.name,
+                                                userData.file,
+                                                userData.fileName,
+                                                userData.fileExtension
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+@Preview(showBackground = true, showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun PreviewFavouriteScreen() {
+    SummerPractiseAppTheme {
+        FavouriteScreen(
+            favouriteState = Resource.Success(
+                listOf(
+                    FavouriteContactsEntity("799999999991", "Alexandr", "file.name", "file", "pdf")
+                )
+            ),
+            deleteFromFavourite = {},
+            insertToRecentCalls = {},
+            deleteUser = {}
+        )
     }
 }

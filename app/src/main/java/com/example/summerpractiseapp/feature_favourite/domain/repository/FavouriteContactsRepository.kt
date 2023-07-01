@@ -8,4 +8,5 @@ interface FavouriteContactsRepository {
     fun getAllFavouriteContacts(): Flow<Resource<List<FavouriteContactsEntity>>>
     suspend fun insertFavouriteContact(contact: FavouriteContactsEntity)
     suspend fun deleteFavouriteContact(contact: FavouriteContactsEntity)
+    suspend fun deleteFavouriteContactByPhone(phone: String)
 }

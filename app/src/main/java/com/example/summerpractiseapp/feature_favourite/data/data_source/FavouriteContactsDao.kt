@@ -17,4 +17,8 @@ interface FavouriteContactsDao {
 
     @Delete
     suspend fun deleteContact(contact: FavouriteContactsEntity)
+
+    @Query("DELETE FROM favouriteContactsTable WHERE phone= :phone")
+    suspend fun deleteContactByPhone(phone: String)
+
 }

@@ -9,4 +9,5 @@ interface RecentCallsRepository {
     suspend fun deleteRecentCall(recentCall: RecentCallsEntity)
     suspend fun addRecentCall(recentCall: RecentCallsEntity)
     suspend fun getRecentCall(phone: String): RecentCallsEntity?
+    suspend fun deleteRecentCallByPhone(phone: String)
 }

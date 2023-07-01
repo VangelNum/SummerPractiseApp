@@ -44,4 +44,10 @@ class RecentCallsViewModel @Inject constructor(
             repository.deleteRecentCall(recentCall)
         }
     }
+
+    fun deleteFromRecentCallsByPhone(phone: String) {
+        viewModelScope.launch {
+            repository.deleteRecentCallByPhone(phone)
+        }
+    }
 }

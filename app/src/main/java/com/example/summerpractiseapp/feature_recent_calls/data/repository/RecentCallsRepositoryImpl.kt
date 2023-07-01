@@ -31,4 +31,8 @@ class RecentCallsRepositoryImpl @Inject constructor(
     override suspend fun getRecentCall(phone: String): RecentCallsEntity? {
         return dao.getRecentCall(phone)
     }
+
+    override suspend fun deleteRecentCallByPhone(phone: String) {
+        return dao.deleteFromLatestByPhone(phone)
+    }
 }

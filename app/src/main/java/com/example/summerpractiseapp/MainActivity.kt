@@ -46,9 +46,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             SummerPractiseAppTheme {
                 val favouriteViewModel: FavouriteViewModel by viewModels()
-                val favouriteState = favouriteViewModel.favouriteState.collectAsStateWithLifecycle().value
+                val favouriteState =
+                    favouriteViewModel.favouriteState.collectAsStateWithLifecycle().value
                 val recentViewModel: RecentCallsViewModel = hiltViewModel()
-                val recentState = recentViewModel.recentCallsState.collectAsStateWithLifecycle().value
+                val recentState =
+                    recentViewModel.recentCallsState.collectAsStateWithLifecycle().value
+                val mainViewModel: MainViewModel = hiltViewModel()
+                val userState = mainViewModel.userResponse.collectAsStateWithLifecycle().value
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
@@ -99,9 +103,6 @@ class MainActivity : ComponentActivity() {
                             Modifier.padding(innerPadding)
                         ) {
                             composable(Screens.MainScreen.route) {
-                                val mainViewModel: MainViewModel = hiltViewModel()
-                                val userState =
-                                    mainViewModel.userResponse.collectAsStateWithLifecycle().value
                                 MainScreen(
                                     favouriteState,
                                     userState,
@@ -113,6 +114,11 @@ class MainActivity : ComponentActivity() {
                                     },
                                     insertToRecentCalls = {
                                         recentViewModel.addToRecentCalls(it)
+                                    },
+                                    deleteUser = {phone->
+                                        mainViewModel.deleteUser(phone)
+                                        recentViewModel.deleteFromRecentCallsByPhone(phone = phone)
+                                        favouriteViewModel.deleteFavouriteContactByPhone(phone = phone)
                                     }
                                 )
                             }
@@ -124,6 +130,11 @@ class MainActivity : ComponentActivity() {
                                     },
                                     insertToRecentCalls = {
                                         recentViewModel.addToRecentCalls(it)
+                                    },
+                                    deleteUser = { phone ->
+                                        mainViewModel.deleteUser(phone)
+                                        recentViewModel.deleteFromRecentCallsByPhone(phone = phone)
+                                        favouriteViewModel.deleteFavouriteContactByPhone(phone = phone)
                                     }
                                 )
                             }
@@ -140,6 +151,11 @@ class MainActivity : ComponentActivity() {
                                     deleteFromRecentCalls = {
                                         recentViewModel.deleteFromRecentCalls(it)
                                     },
+                                    deleteUser = {phone->
+                                        mainViewModel.deleteUser(phone)
+                                        recentViewModel.deleteFromRecentCallsByPhone(phone = phone)
+                                        favouriteViewModel.deleteFavouriteContactByPhone(phone = phone)
+                                    }
                                 )
                             }
                         }

@@ -29,4 +29,8 @@ class FavouriteContactsRepositoryImpl @Inject constructor(
     override suspend fun deleteFavouriteContact(contact: FavouriteContactsEntity) {
         dao.deleteContact(contact)
     }
+
+    override suspend fun deleteFavouriteContactByPhone(phone: String) {
+        dao.deleteContactByPhone(phone)
+    }
 }

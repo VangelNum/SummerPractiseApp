@@ -43,6 +43,7 @@ fun RecentCallsScreen(
     deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
     recentState: Resource<List<RecentCallsEntity>>,
     deleteFromRecentCalls: (contact: RecentCallsEntity) -> Unit,
+    deleteUser: (String) -> Unit
 ) {
     when (recentState) {
         is Resource.Loading -> {
@@ -60,6 +61,7 @@ fun RecentCallsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(recentState.data) { userData ->
+                    val phoneNumber = "+" + userData.phone
                     Card(
                         shape = MaterialTheme.shapes.medium,
                         colors = CardDefaults.cardColors(containerColor = BackgroundColorForPhoneItem)
@@ -82,7 +84,7 @@ fun RecentCallsScreen(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = userData.phone,
+                                    text = phoneNumber,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.titleLarge
@@ -104,26 +106,41 @@ fun RecentCallsScreen(
                                     )
                                 }
                             }
+                            userData.file?.let { base64String ->
+                                IconComponent(
+                                    icon = R.drawable.outline_file_open_24,
+                                    contentDescription = null,
+                                    circleColor = Color.Gray,
+                                    modifier = Modifier.clickable {
+                                        openBase64File(
+                                            context,
+                                            base64String,
+                                            userData.fileExtension,
+                                            userData.fileName
+                                        )
+                                    })
+                            }
                             Column {
-                                userData.file?.let { base64String ->
-                                    IconComponent(
-                                        icon = R.drawable.outline_file_open_24,
-                                        contentDescription = null,
-                                        circleColor = Color.Gray,
-                                        modifier = Modifier.clickable {
-                                            openBase64File(
-                                                context,
-                                                base64String,
-                                                userData.fileExtension,
-                                                userData.fileName
+                                IconComponent(
+                                    icon = R.drawable.baseline_close_24,
+                                    contentDescription = null,
+                                    circleColor = Color.Gray,
+                                    modifier = Modifier.clickable {
+                                        deleteFromRecentCalls(
+                                            RecentCallsEntity(
+                                                userData.phone,
+                                                userData.name,
+                                                userData.file,
+                                                userData.fileName,
+                                                userData.fileExtension
                                             )
-                                        })
-                                }
+                                        )
+                                    }
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 if (favouriteState is Resource.Success) {
-                                    val isFavourite =
-                                        favouriteState.data.map { it.phone }
-                                            .contains(userData.phone)
+                                    val isFavourite = favouriteState.data.map { it.phone }
+                                        .contains(userData.phone)
                                     if (isFavourite) {
                                         IconComponent(
                                             icon = R.drawable.baseline_favorite_24,
@@ -164,19 +181,11 @@ fun RecentCallsScreen(
                             }
                             Column {
                                 IconComponent(
-                                    icon = R.drawable.baseline_close_24,
+                                    icon = R.drawable.baseline_delete_outline_24,
                                     contentDescription = null,
                                     circleColor = Color.Gray,
                                     modifier = Modifier.clickable {
-                                        deleteFromRecentCalls(
-                                            RecentCallsEntity(
-                                                userData.phone,
-                                                userData.name,
-                                                userData.file,
-                                                userData.fileName,
-                                                userData.fileExtension
-                                            )
-                                        )
+                                        deleteUser(userData.phone)
                                     }
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -185,7 +194,7 @@ fun RecentCallsScreen(
                                     contentDescription = null,
                                     circleColor = Color.Gray,
                                     modifier = Modifier.clickable {
-                                        callPhone(userData.phone, context)
+                                        callPhone(phoneNumber, context)
                                     }
                                 )
                             }
@@ -202,17 +211,27 @@ fun RecentCallsScreen(
 fun PreviewRecentCallsScreen() {
     SummerPractiseAppTheme {
         RecentCallsScreen(
-            favouriteState = Resource.Success(listOf(
-                FavouriteContactsEntity("dffd","fdfd","fdfd","fdfd","fdfd")
-            )
+            favouriteState = Resource.Success(
+                listOf(
+                    FavouriteContactsEntity("dffd", "fdfd", "fdfd", "fdfd", "fdfd")
+                )
             ),
             addToFavourite = {},
             deleteFromRecentCalls = {},
             deleteFromFavourite = {},
-            recentState = Resource.Success(listOf(
-                RecentCallsEntity("+79999999999","Alexandr","myFile","FileName","image/png"),
-                RecentCallsEntity("+79999999999","Alexandr",null,null,null),
-            ))
+            recentState = Resource.Success(
+                listOf(
+                    RecentCallsEntity(
+                        "79999999999",
+                        "Alexandr",
+                        "myFile",
+                        "FileName",
+                        "image/png"
+                    ),
+                    RecentCallsEntity("79999999999", "Alexandr", null, null, null),
+                )
+            ),
+            deleteUser = {}
         )
     }
 }

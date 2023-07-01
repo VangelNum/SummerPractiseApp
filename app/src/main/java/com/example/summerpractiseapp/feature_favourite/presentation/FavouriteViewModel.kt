@@ -41,5 +41,11 @@ class FavouriteViewModel @Inject constructor(
             repository.insertFavouriteContact(contact = contact)
         }
     }
+
+    fun deleteFavouriteContactByPhone(phone: String) {
+        viewModelScope.launch {
+            repository.deleteFavouriteContactByPhone(phone)
+        }
+    }
 }
 

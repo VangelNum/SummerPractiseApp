@@ -20,4 +20,7 @@ interface RecentCallsDao {
 
     @Query("SELECT * FROM recentCallsTable WHERE phone = :phone")
     suspend fun getRecentCall(phone: String): RecentCallsEntity?
+
+    @Query("DELETE FROM recentCallsTable WHERE phone = :phone")
+    suspend fun deleteFromLatestByPhone(phone: String)
 }

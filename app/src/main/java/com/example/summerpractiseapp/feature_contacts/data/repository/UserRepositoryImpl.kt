@@ -12,11 +12,16 @@ class UserRepositoryImpl @Inject constructor(
     private val apiInterface: ApiInterface
 ) : UserRepository {
     override fun getAllUsers(): Flow<Resource<List<UserData>>> = flow {
+        emit(Resource.Loading)
         try {
             val response = apiInterface.getAllUsers()
             emit(Resource.Success(response))
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Unknown error"))
         }
+    }
+
+    override suspend fun deleteUser(phone: String) {
+        apiInterface.deleteUser(phone)
     }
 }

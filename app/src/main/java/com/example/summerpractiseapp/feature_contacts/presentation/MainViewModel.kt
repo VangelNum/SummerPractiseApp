@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,5 +28,12 @@ class MainViewModel @Inject constructor(
         val response = repository.getAllUsers().onEach {
             _userResponse.value = it
         }.launchIn(viewModelScope)
+    }
+
+    fun deleteUser(phone: String) {
+        viewModelScope.launch {
+            repository.deleteUser(phone)
+            getAllUsers()
+        }
     }
 }

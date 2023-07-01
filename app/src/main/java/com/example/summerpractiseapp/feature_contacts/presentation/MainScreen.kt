@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -42,7 +44,8 @@ fun MainScreen(
     userState: Resource<List<UserData>>,
     addToFavourite: (contact: FavouriteContactsEntity) -> Unit,
     deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
-    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit
+    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit,
+    deleteUser: (phone: String) -> Unit
 ) {
     when (userState) {
         is Resource.Loading -> {
@@ -59,7 +62,8 @@ fun MainScreen(
                 addToFavourite,
                 deleteFromFavourite,
                 favouriteState,
-                insertToRecentCalls
+                insertToRecentCalls,
+                deleteUser
             )
         }
     }
@@ -71,7 +75,8 @@ fun UserTable(
     addToFavourite: (contact: FavouriteContactsEntity) -> Unit,
     deleteFromFavourite: (contact: FavouriteContactsEntity) -> Unit,
     favouriteState: Resource<List<FavouriteContactsEntity>>,
-    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit
+    insertToRecentCalls: (recentCall: RecentCallsEntity) -> Unit,
+    deleteUser: (phone: String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -80,6 +85,7 @@ fun UserTable(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(userList) { userData ->
+            val phoneNumber = "+" + userData.phone
             Card(
                 shape = MaterialTheme.shapes.medium,
                 colors = CardDefaults.cardColors(containerColor = BackgroundColorForPhoneItem)
@@ -102,7 +108,7 @@ fun UserTable(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = userData.phone,
+                            text = phoneNumber,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleLarge
@@ -124,76 +130,92 @@ fun UserTable(
                             )
                         }
                     }
-                    userData.file?.let { base64String ->
+                    Column {
+                        userData.file?.let { base64String ->
+                            IconComponent(
+                                icon = R.drawable.outline_file_open_24,
+                                contentDescription = null,
+                                circleColor = Color.Gray,
+                                modifier = Modifier.clickable {
+                                    openBase64File(
+                                        context,
+                                        base64String,
+                                        userData.fileExtension,
+                                        userData.fileName ?: "file"
+                                    )
+                                })
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                         IconComponent(
-                            icon = R.drawable.outline_file_open_24,
+                            icon = R.drawable.baseline_delete_outline_24,
                             contentDescription = null,
                             circleColor = Color.Gray,
                             modifier = Modifier.clickable {
-                                openBase64File(
-                                    context,
-                                    base64String,
-                                    userData.fileExtension,
-                                    userData.fileName ?: "file"
+                                deleteUser(
+                                    userData.phone
                                 )
-                            })
+                            }
+                        )
                     }
-                    if (favouriteState is Resource.Success) {
-                        val isFavourite = favouriteState.data.map { it.phone }.contains(userData.phone)
-                        if (isFavourite) {
-                            IconComponent(
-                                icon = R.drawable.baseline_favorite_24,
-                                contentDescription = null,
-                                circleColor = Color.Gray,
-                                modifier = Modifier.clickable {
-                                    deleteFromFavourite(
-                                        FavouriteContactsEntity(
-                                            phone = userData.phone,
-                                            name = userData.name,
-                                            file = userData.file,
-                                            fileName = userData.fileName,
-                                            fileExtension = userData.fileExtension
+                    Column {
+                        if (favouriteState is Resource.Success) {
+                            val isFavourite = favouriteState.data.map { it.phone }.contains(userData.phone)
+                            if (isFavourite) {
+                                IconComponent(
+                                    icon = R.drawable.baseline_favorite_24,
+                                    contentDescription = null,
+                                    circleColor = Color.Gray,
+                                    modifier = Modifier.clickable {
+                                        deleteFromFavourite(
+                                            FavouriteContactsEntity(
+                                                phone = userData.phone,
+                                                name = userData.name,
+                                                file = userData.file,
+                                                fileName = userData.fileName,
+                                                fileExtension = userData.fileExtension
+                                            )
                                         )
-                                    )
-                                },
-                                iconTint = Color.Red
-                            )
-                        } else {
-                            IconComponent(
-                                icon = R.drawable.outline_favorite_border_24,
-                                contentDescription = null,
-                                circleColor = Color.Gray,
-                                modifier = Modifier.clickable {
-                                    addToFavourite(
-                                        FavouriteContactsEntity(
-                                            phone = userData.phone,
-                                            name = userData.name,
-                                            file = userData.file,
-                                            fileName = userData.fileName,
-                                            fileExtension = userData.fileExtension
-                                        )
-                                    )
-                                },
-                            )
-                        }
-                    }
-                    IconComponent(
-                        icon = R.drawable.outline_phone_24,
-                        contentDescription = null,
-                        circleColor = Color.Gray,
-                        modifier = Modifier.clickable {
-                            callPhone(userData.phone, context)
-                            insertToRecentCalls(
-                                RecentCallsEntity(
-                                    userData.phone,
-                                    userData.name,
-                                    userData.file,
-                                    userData.fileName,
-                                    userData.fileExtension
+                                    },
+                                    iconTint = Color.Red
                                 )
-                            )
+                            } else {
+                                IconComponent(
+                                    icon = R.drawable.outline_favorite_border_24,
+                                    contentDescription = null,
+                                    circleColor = Color.Gray,
+                                    modifier = Modifier.clickable {
+                                        addToFavourite(
+                                            FavouriteContactsEntity(
+                                                phone = userData.phone,
+                                                name = userData.name,
+                                                file = userData.file,
+                                                fileName = userData.fileName,
+                                                fileExtension = userData.fileExtension
+                                            )
+                                        )
+                                    },
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
-                    )
+                        IconComponent(
+                            icon = R.drawable.outline_phone_24,
+                            contentDescription = null,
+                            circleColor = Color.Gray,
+                            modifier = Modifier.clickable {
+                                callPhone(phoneNumber, context)
+                                insertToRecentCalls(
+                                    RecentCallsEntity(
+                                        userData.phone,
+                                        userData.name,
+                                        userData.file,
+                                        userData.fileName,
+                                        userData.fileExtension
+                                    )
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -209,10 +231,10 @@ fun PreviewMainScreen() {
         MainScreen(
             userState = Resource.Success(
                 listOf(
-                    UserData("+799999999999", "Александр", "file", "Документы", "application/pdf"),
-                    UserData("+799999999999", "name", null, "myfileName", null),
-                    UserData("+799999999999", "name", "file", "myFileName", "pdf"),
-                    UserData("+799999999999", "name", "file", "myFileName", "pdf"),
+                    UserData("799999999999", "Александр", "file", "Документы", "application/pdf"),
+                    UserData("799999999999", "name", null, "myfileName", null),
+                    UserData("799999999999", "name", "file", "myFileName", "pdf"),
+                    UserData("799999999999", "name", "file", "myFileName", "pdf"),
                 )
             ),
             addToFavourite = {},
@@ -224,7 +246,8 @@ fun PreviewMainScreen() {
                 )
             ),
             deleteFromFavourite = {},
-            insertToRecentCalls = {}
+            insertToRecentCalls = {},
+            deleteUser = {}
         )
     }
 }
